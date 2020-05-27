@@ -10,7 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -30,21 +30,14 @@ public class DataApplication {
 class SampleDataInitializer{
 
 	private final ReservationRepository reservationRepository;
-	private final DatabaseClient databaseClient;
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void ready() {
 
-		this.databaseClient
-				.select().from("reservation").as(Reservation.class)
-				.fetch()
-				.all()
-				.doOnComplete( () -> {log.info("---------------------------");})
-				.subscribe(log::info);
 
 		Flux<Reservation> reservations = Flux.just("Madhura", "Josh", "Olga", "Marcin", "Ria", "Stefan", "Violetta", "Dr. Syer")
 					.map(name -> new Reservation(null, name))
-					.flatMapSequential(reservationRepository::save);
+					.flatMap(reservationRepository::save);
 
 		this.reservationRepository
 				.deleteAll()
@@ -55,15 +48,16 @@ class SampleDataInitializer{
 
 }
 
-interface ReservationRepository extends ReactiveCrudRepository<Reservation, Integer>{
+interface ReservationRepository extends ReactiveCrudRepository<Reservation, String>{
 }
 
 @Data
+@Document
 @AllArgsConstructor
 @NoArgsConstructor
 class Reservation {
 
 	@Id
-	private Integer id;
+	private String id;
 	private String name;
 }
