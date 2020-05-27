@@ -1,0 +1,19 @@
+version: '3.3'
+services:
+  mongo:
+    container_name: reactive-spring-mongo
+    image: mongo
+    ports:
+    - "27017:27017"
+
+  postgres:
+    container_name: reactive-spring-postgres
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: orders
+      POSTGRES_USER: orders
+
