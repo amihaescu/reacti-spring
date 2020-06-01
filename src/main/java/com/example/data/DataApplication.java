@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
+@EnableTransactionManagement
 public class DataApplication {
 
 	@Bean
@@ -49,13 +50,14 @@ class ReservationService {
 	private final ReservationRepository reservationRepository;
 	private final TransactionalOperator transactionalOperator;
 
-	Flux<Reservation> saveAll(String... names){
+	@Transactional
+	public Flux<Reservation> saveAll(String... names){
 		Flux<Reservation> reservations = Flux
 				.fromArray(names)
 				.map(name -> new Reservation(null, name))
 				.flatMapSequential(reservationRepository::save)
 				.doOnNext(this::assertValid);
-		return this.transactionalOperator.transactional(reservations);
+		return reservations;
 	}
 
 	private void assertValid(Reservation r) {
